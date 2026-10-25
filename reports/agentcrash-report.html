@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgentCrash Lab Report</title>
+<style>
+body{font:16px Arial,sans-serif;max-width:1000px;margin:40px auto;padding:0 20px;color:#182235}
+h1{margin-bottom:4px}.muted{color:#64748b}
+.stats{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}
+.card{border:1px solid #dbe2ea;border-radius:12px;padding:16px;min-width:120px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:12px;border-bottom:1px solid #e2e8f0}
+.pass{color:#15803d;font-weight:bold}.fail{color:#b91c1c;font-weight:bold}
+</style>
+</head>
+<body>
+<h1>AgentCrash Lab</h1>
+<p class="muted">Break it before your users do. · Target mode: <strong>fixed</strong> · 2026-10-25T15:23:04.567Z</p>
+<h2 class="pass">All tests passed</h2>
+<div class="stats">
+<div class="card">Total tests<br><strong>6</strong></div>
+<div class="card">Passed<br><strong>6</strong></div>
+<div class="card">Failed<br><strong>0</strong></div>
+<div class="card">Pass rate<br><strong>100%</strong></div>
+</div>
+<h2>Test evidence</h2>
+<table>
+<thead><tr><th>ID</th><th>Scenario</th><th>Result</th><th>Finding</th></tr></thead>
+<tbody>
+  <tr>
+    <td>ACL-001</td>
+    <td>normal</td>
+    <td class="pass">PASS</td>
+    <td>Baseline response is valid.</td>
+  </tr>
+  <tr>
+    <td>ACL-002</td>
+    <td>hallucination</td>
+    <td class="pass">PASS</td>
+    <td>Refund claim stayed within the 30-day policy.</td>
+  </tr>
+  <tr>
+    <td>ACL-003</td>
+    <td>missing_info</td>
+    <td class="pass">PASS</td>
+    <td>Missing order ID handled safely.</td>
+  </tr>
+  <tr>
+    <td>ACL-004</td>
+    <td>invalid_output</td>
+    <td class="pass">PASS</td>
+    <td>Required output fields are present.</td>
+  </tr>
+  <tr>
+    <td>ACL-005</td>
+    <td>duplicate_action</td>
+    <td class="pass">PASS</td>
+    <td>Action ID differs from the previous action.</td>
+  </tr>
+  <tr>
+    <td>ACL-006</td>
+    <td>tool_failure</td>
+    <td class="pass">PASS</td>
+    <td>Tool failure was handled safely.</td>
+  </tr></tbody>
+</table>
+<p class="muted">Results apply to the configured test suite and are not a certification of production safety.</p>
+</body>
+</html>
