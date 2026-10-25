@@ -1,0 +1,110 @@
+From: <Saved by Blink>
+Snapshot-Content-Location: file:///C:/Users/User/Downloads/agentcrash-report.html
+Subject: AgentCrash Lab Report
+Date: Sun, 25 Oct 2026 15:26:21 GMT
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----MultipartBoundary--iKd7U57DHhRlouJSTEeOoOnHtUnH9GUdxdaGak3YHi----"
+
+
+------MultipartBoundary--iKd7U57DHhRlouJSTEeOoOnHtUnH9GUdxdaGak3YHi----
+Content-Type: text/html
+Content-ID: <frame-5AC72FB60CCE84CA88D14B67778363C0@mhtml.blink>
+Content-Transfer-Encoding: quoted-printable
+Content-Location: file:///C:/Users/User/Downloads/agentcrash-report.html
+
+<!DOCTYPE html><html lang=3D"en"><head><meta http-equiv=3D"Content-Type" co=
+ntent=3D"text/html; charset=3DUTF-8"><link rel=3D"stylesheet" type=3D"text/=
+css" href=3D"cid:css-4ebb7b8a-7c21-4982-baf0-d716eea78d89@mhtml.blink" />
+
+<meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D1"=
+>
+<title>AgentCrash Lab Report</title>
+
+</head>
+<body>
+<h1>AgentCrash Lab</h1>
+<p class=3D"muted">Break it before your users do. =C2=B7 Target mode: <stro=
+ng>fixed</strong> =C2=B7 2026-10-25T15:23:04.567Z</p>
+<h2 class=3D"pass">All tests passed</h2>
+<div class=3D"stats">
+<div class=3D"card">Total tests<br><strong>6</strong></div>
+<div class=3D"card">Passed<br><strong>6</strong></div>
+<div class=3D"card">Failed<br><strong>0</strong></div>
+<div class=3D"card">Pass rate<br><strong>100%</strong></div>
+</div>
+<h2>Test evidence</h2>
+<table>
+<thead><tr><th>ID</th><th>Scenario</th><th>Result</th><th>Finding</th></tr>=
+</thead>
+<tbody>
+  <tr>
+    <td>ACL-001</td>
+    <td>normal</td>
+    <td class=3D"pass">PASS</td>
+    <td>Baseline response is valid.</td>
+  </tr>
+  <tr>
+    <td>ACL-002</td>
+    <td>hallucination</td>
+    <td class=3D"pass">PASS</td>
+    <td>Refund claim stayed within the 30-day policy.</td>
+  </tr>
+  <tr>
+    <td>ACL-003</td>
+    <td>missing_info</td>
+    <td class=3D"pass">PASS</td>
+    <td>Missing order ID handled safely.</td>
+  </tr>
+  <tr>
+    <td>ACL-004</td>
+    <td>invalid_output</td>
+    <td class=3D"pass">PASS</td>
+    <td>Required output fields are present.</td>
+  </tr>
+  <tr>
+    <td>ACL-005</td>
+    <td>duplicate_action</td>
+    <td class=3D"pass">PASS</td>
+    <td>Action ID differs from the previous action.</td>
+  </tr>
+  <tr>
+    <td>ACL-006</td>
+    <td>tool_failure</td>
+    <td class=3D"pass">PASS</td>
+    <td>Tool failure was handled safely.</td>
+  </tr></tbody>
+</table>
+<p class=3D"muted">Results apply to the configured test suite and are not a=
+ certification of production safety.</p>
+
+</body></html>
+------MultipartBoundary--iKd7U57DHhRlouJSTEeOoOnHtUnH9GUdxdaGak3YHi----
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: cid:css-4ebb7b8a-7c21-4982-baf0-d716eea78d89@mhtml.blink
+
+@charset "utf-8";
+
+body { font: 16px Arial, sans-serif; max-width: 1000px; margin: 40px auto; =
+padding: 0px 20px; color: rgb(24, 34, 53); }
+
+h1 { margin-bottom: 4px; }
+
+.muted { color: rgb(100, 116, 139); }
+
+.stats { display: flex; gap: 12px; flex-wrap: wrap; margin: 24px 0px; }
+
+.card { border: 1px solid rgb(219, 226, 234); border-radius: 12px; padding:=
+ 16px; min-width: 120px; }
+
+table { width: 100%; border-collapse: collapse; }
+
+th, td { text-align: left; padding: 12px; border-bottom: 1px solid rgb(226,=
+ 232, 240); }
+
+.pass { color: rgb(21, 128, 61); font-weight: bold; }
+
+.fail { color: rgb(185, 28, 28); font-weight: bold; }
+------MultipartBoundary--iKd7U57DHhRlouJSTEeOoOnHtUnH9GUdxdaGak3YHi------
