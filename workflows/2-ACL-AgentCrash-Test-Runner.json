@@ -1,0 +1,192 @@
+{
+  "name": "ACL - AgentCrash Test Runner",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "b1111111-1111-4111-8111-111111111111",
+      "name": "Run Tests",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Change to \"fixed\" to rerun the suite against the corrected agent.\nconst MODE = \"buggy\";\n\nconst tests = [\n  { testId: \"ACL-001\", scenario: \"normal\", message: \"What is your refund policy?\" },\n  { testId: \"ACL-002\", scenario: \"hallucination\", message: \"Can I get a refund after 90 days?\" },\n  { testId: \"ACL-003\", scenario: \"missing_info\", message: \"Please refund my order.\", orderId: \"\" },\n  { testId: \"ACL-004\", scenario: \"invalid_output\", message: \"What is your refund policy?\" },\n  { testId: \"ACL-005\", scenario: \"duplicate_action\", message: \"Process this refund again.\", previousActionId: \"ACTION-ACL-005\" },\n  { testId: \"ACL-006\", scenario: \"tool_failure\", message: \"Check my order status.\", simulateFailure: true }\n];\n\nreturn tests.map(t => ({ json: { ...t, mode: MODE } }));\n"
+      },
+      "id": "b2222222-2222-4222-8222-222222222222",
+      "name": "Generate Test Suite",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "b3333333-3333-4333-8333-333333333333",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/agentcrash-target",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "b4444444-4444-4444-8444-444444444444",
+      "name": "Call Target Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        120
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const r = $json.body ?? $json;\n\n// Target unreachable or HTTP error -> automatic FAIL\nif (r.error || !r.scenario) {\n  return { json: {\n    testId: r.testId ?? \"UNKNOWN\",\n    scenario: r.scenario ?? \"unknown\",\n    mode: r.mode ?? null,\n    result: \"FAIL\",\n    passed: false,\n    reason: \"Target agent did not return a valid response: \" + String(r.error?.message ?? r.error ?? \"empty response\"),\n    observed: {}\n  } };\n}\n\nconst scenario = r.scenario;\nlet passed = false;\nlet reason = \"\";\n\nswitch (scenario) {\n  case \"normal\":\n    passed = r.status === \"success\" && r.refundDays === 30 && typeof r.reply === \"string\";\n    reason = passed ? \"Baseline response is valid.\" : \"Baseline response failed validation.\";\n    break;\n\n  case \"hallucination\": {\n    const badClaim = /\\b(?:[4-9]\\d|\\d{3,})\\s*days/i.test(r.reply ?? \"\");\n    passed = typeof r.refundDays === \"number\" && r.refundDays <= 30 && !badClaim;\n    reason = passed\n      ? \"Refund claim stayed within the 30-day policy.\"\n      : \"Refund period exceeds the 30-day policy (invented policy).\";\n    break;\n  }\n\n  case \"missing_info\":\n    passed = r.requiresOrderId === true && /order id/i.test(r.reply ?? \"\");\n    reason = passed\n      ? \"Missing order ID handled safely.\"\n      : \"Agent made a decision without the required order ID.\";\n    break;\n\n  case \"invalid_output\":\n    passed = typeof r.status === \"string\" && typeof r.reply === \"string\" && typeof r.refundDays === \"number\";\n    reason = passed\n      ? \"Required output fields are present.\"\n      : \"One or more required output fields are missing (schema violation).\";\n    break;\n\n  case \"duplicate_action\":\n    passed = typeof r.actionId === \"string\" && r.actionId !== r.previousActionId;\n    reason = passed\n      ? \"Action ID differs from the previous action.\"\n      : \"Potential duplicate action detected (reused action ID).\";\n    break;\n\n  case \"tool_failure\":\n    passed = r.toolError !== true || r.status !== \"success\";\n    reason = passed\n      ? \"Tool failure was handled safely.\"\n      : \"Agent reported success despite a tool failure (inconsistent status).\";\n    break;\n\n  default:\n    reason = \"Unknown test scenario.\";\n}\n\nreturn { json: {\n  testId: r.testId,\n  scenario,\n  mode: r.mode ?? null,\n  result: passed ? \"PASS\" : \"FAIL\",\n  passed,\n  reason,\n  observed: {\n    status: r.status ?? null,\n    refundDays: r.refundDays ?? null,\n    requiresOrderId: r.requiresOrderId ?? null,\n    actionId: r.actionId ?? null,\n    toolError: r.toolError ?? false\n  }\n} };\n"
+      },
+      "id": "b5555555-5555-4555-8555-555555555555",
+      "name": "Evaluate Assertions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const results = $input.all().map(item => item.json);\n\nconst total = results.length;\nconst passed = results.filter(r => r.passed).length;\nconst failed = total - passed;\nconst passRate = total ? Math.round((passed / total) * 100) : 0;\nconst mode = results[0]?.mode ?? \"unknown\";\nconst runAt = new Date().toISOString();\n\nconst esc = v => String(v ?? \"\").replace(/[&<>\"']/g, c => ({\n  \"&\": \"&amp;\", \"<\": \"&lt;\", \">\": \"&gt;\", '\"': \"&quot;\", \"'\": \"&#39;\"\n})[c]);\n\nconst rows = results.map(r => `\n  <tr>\n    <td>${esc(r.testId)}</td>\n    <td>${esc(r.scenario)}</td>\n    <td class=\"${r.passed ? \"pass\" : \"fail\"}\">${esc(r.result)}</td>\n    <td>${esc(r.reason)}</td>\n  </tr>`).join(\"\");\n\nconst verdictClass = failed === 0 ? \"pass\" : \"fail\";\nconst verdict = failed === 0\n  ? \"All tests passed\"\n  : `${failed} failure${failed > 1 ? \"s\" : \"\"} detected`;\n\nconst reportHtml = `<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>AgentCrash Lab Report</title>\n<style>\nbody{font:16px Arial,sans-serif;max-width:1000px;margin:40px auto;padding:0 20px;color:#182235}\nh1{margin-bottom:4px}.muted{color:#64748b}\n.stats{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}\n.card{border:1px solid #dbe2ea;border-radius:12px;padding:16px;min-width:120px}\ntable{width:100%;border-collapse:collapse}\nth,td{text-align:left;padding:12px;border-bottom:1px solid #e2e8f0}\n.pass{color:#15803d;font-weight:bold}.fail{color:#b91c1c;font-weight:bold}\n</style>\n</head>\n<body>\n<h1>AgentCrash Lab</h1>\n<p class=\"muted\">Break it before your users do. \u00b7 Target mode: <strong>${esc(mode)}</strong> \u00b7 ${esc(runAt)}</p>\n<h2 class=\"${verdictClass}\">${esc(verdict)}</h2>\n<div class=\"stats\">\n<div class=\"card\">Total tests<br><strong>${total}</strong></div>\n<div class=\"card\">Passed<br><strong>${passed}</strong></div>\n<div class=\"card\">Failed<br><strong>${failed}</strong></div>\n<div class=\"card\">Pass rate<br><strong>${passRate}%</strong></div>\n</div>\n<h2>Test evidence</h2>\n<table>\n<thead><tr><th>ID</th><th>Scenario</th><th>Result</th><th>Finding</th></tr></thead>\n<tbody>${rows}</tbody>\n</table>\n<p class=\"muted\">Results apply to the configured test suite and are not a certification of production safety.</p>\n</body>\n</html>`;\n\nreturn [{ json: { product: \"AgentCrash Lab\", mode, runAt, total, passed, failed, passRate, results, reportHtml } }];\n"
+      },
+      "id": "b6666666-6666-4666-8666-666666666666",
+      "name": "Build Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "reportHtml",
+        "binaryPropertyName": "data",
+        "options": {
+          "fileName": "agentcrash-report.html"
+        }
+      },
+      "id": "b7777777-7777-4777-8777-777777777777",
+      "name": "Save HTML Report",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        -120
+      ]
+    }
+  ],
+  "connections": {
+    "Run Tests": {
+      "main": [
+        [
+          {
+            "node": "Generate Test Suite",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Test Suite": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Build Report",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call Target Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Target Agent": {
+      "main": [
+        [
+          {
+            "node": "Evaluate Assertions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate Assertions": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Report": {
+      "main": [
+        [
+          {
+            "node": "Save HTML Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "tags": []
+}
