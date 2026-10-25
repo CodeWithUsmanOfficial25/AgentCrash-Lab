@@ -86,4 +86,4 @@ This project uses a simulated support agent and six predefined test scenarios. P
 ---
 
 **Author:** Ch Usman Elahi  
-**Project:** AgentCrash Lab
+**Project:** AgentCrash Lab.
